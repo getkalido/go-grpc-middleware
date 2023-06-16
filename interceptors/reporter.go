@@ -51,6 +51,9 @@ type Reporter interface {
 	PostCall(err error, rpcDuration time.Duration)
 	PostMsgSend(reqProto any, err error, sendDuration time.Duration)
 	PostMsgReceive(replyProto any, err error, recvDuration time.Duration)
+
+	//TTFB Tracking&Reporting
+	PostTTFB(ttfb time.Duration)
 }
 
 var _ Reporter = NoopReporter{}
@@ -60,6 +63,9 @@ type NoopReporter struct{}
 func (NoopReporter) PostCall(error, time.Duration)            {}
 func (NoopReporter) PostMsgSend(any, error, time.Duration)    {}
 func (NoopReporter) PostMsgReceive(any, error, time.Duration) {}
+
+// TTFB Tracking&Reporting
+func (NoopReporter) PostTTFB(time.Duration) {}
 
 type report struct {
 	callMeta  CallMeta

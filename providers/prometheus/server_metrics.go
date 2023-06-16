@@ -18,6 +18,9 @@ type ServerMetrics struct {
 	serverStreamMsgSent     *prometheus.CounterVec
 	// serverHandledHistogram can be nil.
 	serverHandledHistogram *prometheus.HistogramVec
+
+	// TTFB Tracking
+	TTFBHistogram *prometheus.HistogramVec
 }
 
 // NewServerMetrics returns a new ServerMetrics object that has server interceptor methods.
@@ -48,6 +51,13 @@ func NewServerMetrics(opts ...ServerMetricsOption) *ServerMetrics {
 				Help: "Total number of gRPC stream messages sent by the server.",
 			}), []string{"grpc_type", "grpc_service", "grpc_method"}),
 		serverHandledHistogram: config.serverHandledHistogram,
+
+		// TTFB Tracking
+		TTFBHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name:    "grpc_server_ttfb_seconds",
+			Help:    "Histogram of gRPC client TTFB",
+			Buckets: prometheus.DefBuckets,
+		}, []string{"type", "service", "method"}),
 	}
 }
 

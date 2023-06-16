@@ -32,7 +32,15 @@ func StreamServerInterceptor(reportable ServerReportable) grpc.StreamServerInter
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		r := newReport(NewServerCallMeta(info.FullMethod, info, nil))
 		reporter, newCtx := reportable.ServerReporter(ss.Context(), r.callMeta)
-		err := handler(srv, &monitoredServerStream{ServerStream: ss, newCtx: newCtx, reporter: reporter})
+
+		err := handler(srv, &monitoredServerStream{
+			ServerStream: ss,
+			newCtx:       newCtx,
+			reporter:     reporter,
+			// TTFB tracking
+			firstMessage: true, // Initialize the firstMessage field
+		})
+
 		reporter.PostCall(err, time.Since(r.startTime))
 		return err
 	}
@@ -44,6 +52,10 @@ type monitoredServerStream struct {
 
 	newCtx   context.Context
 	reporter Reporter
+
+	// TTFB
+	firstMessage bool // for tracking the first message
+	startTime    time.Time
 }
 
 func (s *monitoredServerStream) Context() context.Context {
@@ -52,7 +64,20 @@ func (s *monitoredServerStream) Context() context.Context {
 
 func (s *monitoredServerStream) SendMsg(m any) error {
 	start := time.Now()
+
+	if s.firstMessage {
+		s.startTime = start
+		s.firstMessage = false
+	}
+
 	err := s.ServerStream.SendMsg(m)
+
+	if !s.firstMessage {
+		// Report TTFB
+		ttfb := time.Since(s.startTime)
+		s.reporter.PostTTFB(ttfb)
+	}
+
 	s.reporter.PostMsgSend(m, err, time.Since(start))
 	return err
 }

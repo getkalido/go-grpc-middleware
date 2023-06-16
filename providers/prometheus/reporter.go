@@ -53,6 +53,21 @@ func (r *reporter) PostMsgSend(_ any, _ error, sendDuration time.Duration) {
 	}
 }
 
+func (r *reporter) PostTTFB(ttfb time.Duration) {
+	switch r.kind {
+	case KindServer:
+		if r.serverMetrics.TTFBHistogram != nil {
+			r.observeWithExemplar(r.serverMetrics.TTFBHistogram, ttfb.Seconds(), string(r.typ), r.service, r.method)
+		}
+		/*
+			case KindClient:
+				if r.clientMetrics.TTFBHistogram != nil {
+					r.observeWithExemplar(r.clientMetrics.TTFBHistogram, ttfb.Seconds(), string(r.typ), r.service, r.method)
+				}
+		*/
+	}
+}
+
 func (r *reporter) PostMsgReceive(_ any, _ error, recvDuration time.Duration) {
 	switch r.kind {
 	case KindServer:
