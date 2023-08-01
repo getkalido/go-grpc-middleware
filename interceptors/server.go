@@ -72,11 +72,13 @@ func (s *monitoredServerStream) SendMsg(m any) error {
 
 	err := s.ServerStream.SendMsg(m)
 
-	if !s.firstMessage {
-		// Report TTFB
-		ttfb := time.Since(s.startTime)
-		s.reporter.PostTTFB(ttfb)
-	}
+	// TODO: re-add the following PostTTFB logic
+	//if !s.firstMessage {
+	//	// Report TTFB
+	//	ttfb := time.Since(s.startTime)
+	//
+	//	s.reporter.PostTTFB(ttfb)
+	//}
 
 	s.reporter.PostMsgSend(m, err, time.Since(start))
 	return err

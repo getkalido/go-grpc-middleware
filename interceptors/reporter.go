@@ -53,7 +53,7 @@ type Reporter interface {
 	PostMsgReceive(replyProto any, err error, recvDuration time.Duration)
 
 	//TTFB Tracking&Reporting
-	PostTTFB(ttfb time.Duration)
+	// PostTTFB(ttfb time.Duration)
 }
 
 var _ Reporter = NoopReporter{}
